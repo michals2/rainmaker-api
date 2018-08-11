@@ -4,6 +4,7 @@
     "start": "micro src/server.js"
   },
   "dependencies": {
+    "axios": "^0.18.0",
     "express-graphql": "^0.6.12",
     "graphql": "^0.13.2",
     "micro": "^9.3.3",
