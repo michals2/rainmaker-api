@@ -10,14 +10,13 @@ const typeDefs = `
     name: String
     symbol: String
     logoUrl: String,
-    historicalStockPrices: [Int]
+    historicalStockPrices: [Float]
   }
 `;
 
 const resolvers = {
   Query: {
     company: async (_, { symbol }) => {
-      console.log({ symbol });
       return await axios
         .get(`https://api.iextrading.com/1.0/stock/${symbol}/chart/1d`)
         .then(({ data }) => {
