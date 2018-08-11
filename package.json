@@ -1,7 +1,7 @@
 {
   "name": "rainmaker-api",
   "scripts": {
-    "start": "micro index.js"
+    "start": "micro src/server.js"
   },
   "dependencies": {
     "express-graphql": "^0.6.12",
