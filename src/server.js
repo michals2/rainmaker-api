@@ -1,7 +1,21 @@
 // const { buildSchema } = require("graphql");
-const server = require("express-graphql");
-const CORS = require("micro-cors")();
+// const server = require("express-graphql");
+// const CORS = require("micro-cors")();
+const { GraphQLServer } = require("graphql-yoga");
 
-const { schema, rootValue } = require("./api");
+const { typeDefs, resolvers } = require("./api");
 
-module.exports = CORS(server({ schema, rootValue }));
+// const typeDefs = `
+//   type Query {
+//     hello(name: String): String!
+//   }
+// `;
+
+// const resolvers = {
+//   Query: {
+//     hello: (_, { name }) => `Hello ${name || "World"}`
+//   }
+// };
+
+const server = new GraphQLServer({ typeDefs, resolvers });
+server.start(() => console.log("Server is running on localhost:4000"));

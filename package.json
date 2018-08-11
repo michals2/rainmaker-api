@@ -1,12 +1,14 @@
 {
   "name": "rainmaker-api",
   "scripts": {
-    "start": "micro src/server.js"
+    "start": "NODE_ENV=production node src/server",
+    "deploy": "now --local-config ./now.json"
   },
   "dependencies": {
     "axios": "^0.18.0",
     "express-graphql": "^0.6.12",
     "graphql": "^0.13.2",
+    "graphql-yoga": "^1.16.0",
     "micro": "^9.3.3",
     "micro-cors": "^0.1.0"
   }
