@@ -29,12 +29,14 @@ const context = req => ({
 const resolvers = {
   Query: {
     company: (_, { symbol }, ctx) => {
-      return axios
-        .get(`https://api.iextrading.com/1.0/stock/${symbol}/chart/1d`)
-        .then(({ data }) => {
-          const values = data.map(d => d.average);
-          return { historicalStockPrices: values };
-        });
+      const {
+        getCompaniesMetaData,
+        getCompanyStockPriceHistory
+      } = ctx.externalApiRequestHelpers;
+      return getCompanyStockPriceHistory(symbol).then(({ data }) => {
+        const values = data.map(d => d.average);
+        return { historicalStockPrices: values };
+      });
     },
     companies: async (_, { limit = 2 }, ctx, info) => {
       const fields = info.fieldNodes[0].selectionSet.selections.map(
