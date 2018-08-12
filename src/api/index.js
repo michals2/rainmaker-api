@@ -4,12 +4,10 @@ const typeDefs = `
   type Query {
     company(symbol: String!): Company
     companies(limit: Int): [Company]
-    companyStockPrice(symbol: String!): [Float]
   }
   type Company {
     name: String
     symbol: String
-    logoUrl: String,
     historicalStockPrices: [Float]
   }
 `;
@@ -22,21 +20,37 @@ const context = req => ({
     getCompanyStockPriceHistory: (symbol, duration = "1d") =>
       axios.get(
         `https://api.iextrading.com/1.0/stock/${symbol}/chart/${duration}`
-      )
+      ),
+    getCompanyMetaData: symbol =>
+      axios.get(`https://api.iextrading.com/1.0/stock/${symbol}/company`)
   }
 });
 
 const resolvers = {
   Query: {
-    company: (_, { symbol }, ctx) => {
+    company: async (_, { symbol }, ctx) => {
       const {
-        getCompaniesMetaData,
+        getCompanyMetaData,
         getCompanyStockPriceHistory
       } = ctx.externalApiRequestHelpers;
-      return getCompanyStockPriceHistory(symbol).then(({ data }) => {
+
+      const companyStockPriceHistory = await getCompanyStockPriceHistory(
+        symbol
+      ).then(({ data }) => {
         const values = data.map(d => d.average);
         return { historicalStockPrices: values };
       });
+
+      const companyMetaData = await getCompanyMetaData(
+        symbol
+      ).then(({ data }) => {
+        return {
+          name: data.companyName,
+          symbol
+        };
+      });
+
+      return { ...companyStockPriceHistory, ...companyMetaData };
     },
     companies: async (_, { limit = 2 }, ctx, info) => {
       const fields = info.fieldNodes[0].selectionSet.selections.map(
@@ -52,8 +66,7 @@ const resolvers = {
       ).then(({ data }) => {
         return data.slice(0, limit).map(d => ({
           name: d.name,
-          symbol: d.symbol,
-          logo: d.logo
+          symbol: d.symbol
         }));
       });
 
