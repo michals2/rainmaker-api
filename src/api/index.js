@@ -2,10 +2,13 @@ const axios = require("axios");
 
 const typeDefs = `
   type Query {
+    iex: Iex
+  }
+  type Iex {
     stock(symbol: String!): Stock
   }
   type Stock {
-    chart(range: String!): [StockDataPoint]
+    chart(range: Range = d1): [StockDataPoint]
   }
   type StockDataPoint {
     date: String
@@ -40,6 +43,9 @@ const enumRangeMap = {
 
 const resolvers = {
   Query: {
+    iex: () => ({})
+  },
+  Iex: {
     stock: (_, { symbol }) => {
       return { symbol };
     }
