@@ -2,99 +2,65 @@ const axios = require("axios");
 
 const typeDefs = `
   type Query {
-    company(symbol: String!): Company
-    companies(limit: Int): [Company]
+    stock(symbol: String!): Stock
   }
-  type Company {
-    name: String
-    symbol: String
-    historicalStockPrices: [Float]
+  type Stock {
+    chart(range: String!): [StockDataPoint]
+  }
+  type StockDataPoint {
+    date: String
+    minute: String
+    high: Float
+    low: Float
+    average: Float
+  }
+  enum Range {
+    d1
+    m1
+    m3
+    m6
+    ytd
+    y1
+    y2
+    y5
   }
 `;
 
-const context = req => ({
-  ...req,
-  externalApiRequestHelpers: {
-    getCompaniesMetaData: limit =>
-      axios.get("https://api.iextrading.com/1.0/ref-data/symbols"),
-    getCompanyStockPriceHistory: (symbol, duration = "1d") =>
-      axios.get(
-        `https://api.iextrading.com/1.0/stock/${symbol}/chart/${duration}`
-      ),
-    getCompanyMetaData: symbol =>
-      axios.get(`https://api.iextrading.com/1.0/stock/${symbol}/company`)
-  }
-});
+const urlBase = "https://api.iextrading.com/1.0";
+const enumRangeMap = {
+  d1: "1d",
+  m1: "1m",
+  m3: "2m",
+  m6: "6m",
+  ytd: "ytd",
+  y1: "1y",
+  y2: "2y",
+  y5: "5y"
+};
 
 const resolvers = {
   Query: {
-    company: async (_, { symbol }, ctx) => {
-      const {
-        getCompanyMetaData,
-        getCompanyStockPriceHistory
-      } = ctx.externalApiRequestHelpers;
-
-      const companyStockPriceHistory = await getCompanyStockPriceHistory(
-        symbol
-      ).then(({ data }) => {
-        const values = data.map(d => d.average);
-        return { historicalStockPrices: values };
-      });
-
-      const companyMetaData = await getCompanyMetaData(
-        symbol
-      ).then(({ data }) => {
-        return {
-          name: data.companyName,
-          symbol
-        };
-      });
-
-      return { ...companyStockPriceHistory, ...companyMetaData };
-    },
-    companies: async (_, { limit = 2 }, ctx, info) => {
-      const fields = info.fieldNodes[0].selectionSet.selections.map(
-        s => s.name.value
-      );
-
-      const {
-        getCompaniesMetaData,
-        getCompanyStockPriceHistory
-      } = ctx.externalApiRequestHelpers;
-      const companiesMetaData = await getCompaniesMetaData(
-        limit
-      ).then(({ data }) => {
-        return data.slice(0, limit).map(d => ({
-          name: d.name,
-          symbol: d.symbol
-        }));
-      });
-
-      if (fields.some(f => f === "historicalStockPrices")) {
-        const promiseArr = companiesMetaData.map(m => {
-          return getCompanyStockPriceHistory(m.symbol);
-        });
-        const companiesStockPriceHistory = await Promise.all(
-          promiseArr
-        ).then(responseArr => {
-          return responseArr.map(res =>
-            res.data.map(dataPoint => dataPoint.average)
-          );
-        });
-        const mergedData = companiesMetaData.map((companyMetaData, i) => ({
-          ...companyMetaData,
-          historicalStockPrices: companiesStockPriceHistory[i]
-        }));
-        return mergedData;
-      } else {
-        return companiesMetaData;
-      }
+    stock: (_, { symbol }) => {
+      return { symbol };
     }
+  },
+  Stock: {
+    chart: ({ symbol }, { range }) => {
+      return axios
+        .get(`${urlBase}/stock/${symbol}/chart/${enumRangeMap[range]}`)
+        .then(({ data }) => data);
+    }
+  },
+  StockDataPoint: {
+    date: obj => obj.date,
+    minute: obj => obj.minute,
+    high: obj => obj.high,
+    low: obj => obj.low,
+    average: obj => obj.average
   }
 };
 
 module.exports = {
   typeDefs,
-  resolvers,
-  context
+  resolvers
 };
