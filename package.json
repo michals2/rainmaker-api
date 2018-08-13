@@ -11,5 +11,8 @@
     "graphql-yoga": "^1.16.0",
     "micro": "^9.3.3",
     "micro-cors": "^0.1.0"
+  },
+  "now": {
+    "alias": "rainmaker-api"
   }
 }
