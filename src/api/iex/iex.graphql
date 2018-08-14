@@ -1,0 +1,26 @@
+type Query {
+  iex: Iex
+}
+type Iex {
+  stock(symbol: String!): Stock
+}
+type Stock {
+  chart(range: Range = d1): [StockDataPoint]
+}
+type StockDataPoint {
+  date: String
+  minute: String
+  high: Float
+  low: Float
+  average: Float
+}
+enum Range {
+  d1
+  m1
+  m3
+  m6
+  ytd
+  y1
+  y2
+  y5
+}
