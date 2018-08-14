@@ -1,12 +1,16 @@
 type Query {
+  # GraphQL wrapper around the IEX REST API
   iex: Iex
 }
+
 type Iex {
   stock(symbol: String!): Stock
 }
+
 type Stock {
   chart(range: Range = d1): [StockDataPoint]
 }
+
 type StockDataPoint {
   date: String
   minute: String
@@ -14,13 +18,22 @@ type StockDataPoint {
   low: Float
   average: Float
 }
+
 enum Range {
+  # 1 day
   d1
+  # 1 month
   m1
+  # 3 months
   m3
+  # 6 months
   m6
+  # year to date
   ytd
+  # 1 year
   y1
+  # 2 years
   y2
+  # 5 years
   y5
 }
